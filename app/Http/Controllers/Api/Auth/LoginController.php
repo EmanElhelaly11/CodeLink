@@ -24,26 +24,13 @@ class LoginController extends Controller
             );
         }
 
-        $responseData = [
-            'user' => $user->only($user->responseFields()),
-        ];
-
         if (!$user->email_verified_at) {
-            return ApiTrait::data(
-                $responseData,
-                __('Your account is not verified. Please verify your email.'),
-                401
-            );
+            return ApiTrait::errorMessage(['message' => 'Your account is not verified. Please verify your email']);
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
-        $responseData['user']['token'] = $token;
-
-        return ApiTrait::data(
-            $responseData,
-            __('Login successful.'),
-            200
-        );
+        $user->token = $token;
+        return ApiTrait::data(compact('user'), 'Login Successful');
     }
 
 

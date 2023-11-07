@@ -34,6 +34,12 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'code',
+        'role',
+        'code_expired_at',
+        'email_verified_at',
+        'updated_at',
+        'created_at',
     ];
 
     /**
@@ -44,13 +50,6 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-
-    // User model
-   public function responseFields(){
-    return [
-        'id','name', 'email','imageUrl','track','bio',
-    ];
-    }
 
     public function teams()
     {

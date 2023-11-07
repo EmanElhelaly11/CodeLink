@@ -28,10 +28,6 @@ class ResetPasswordController extends Controller
             return ApiTrait::errorMessage([], "Something went wrong", 500);
         }
 
-        $userData = $user->only($user->responseFields());
-
-        return ApiTrait::data(
-            ['user' => $userData],
-            'Password Reset Successfully', 200);
+        return ApiTrait::data(compact('user'), 'Password Reset Successfully');
     }
 }

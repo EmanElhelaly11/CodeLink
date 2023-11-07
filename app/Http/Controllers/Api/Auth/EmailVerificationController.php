@@ -16,30 +16,25 @@ class EmailVerificationController extends Controller
 {
     $user = User::where('email', $request->input('email'))->first();
 
-    if (!$user) {
-        return ApiTrait::errorMessage([], 'User not found', 404);
-    }
+      if (!$user) {
+        return ApiTrait::errorMessage(['message' => "User not found"]);
+      }
 
-    // Check if the user's email is already verified
-    // if ($user->email_verified_at) {
-    //     return ApiTrait::errorMessage([], 'Email is already verified', 400);
-    // }
+      $code = rand(1000, 9999); // Generate a 4-digit code
+      $user->code = $code;
+      $user->code_expired_at = now()->addMinutes(config('auth.code_timeout'));
+      $user->save();
 
-    $code = rand(1000, 9999); // Generate a 4-digit code
-    $user->code = $code;
-    $user->code_expired_at = now()->addMinutes(config('auth.code_timeout'));
-    $user->save();
-
-    try {
+      try {
         Mail::to($user)->send(new VerificationCode($user));
-    } catch (\Exception $e) {
+      } catch (\Exception $e) {
         return ApiTrait::errorMessage(['mail' => $e->getMessage()], 'Please Try Again Later');
-    }
+     }
 
-    $userData = $user->only($user->responseFields('email_verified_at')); // Exclude token
-    return ApiTrait::data(['user' => $userData], "Mail Sent Successfully, You Will Receive Code In Your Email", 200);
-}
+     return ApiTrait::data(compact('user'), 'Mail Sent Successfully, You Will Receive Code In Your Email');
+   }
 
+   
     public function verifyEmail(CodeRequest $request)
     {
         $user = User::where('email', $request->input('email'))->first();
@@ -63,11 +58,7 @@ class EmailVerificationController extends Controller
 
         // Generate a new token for the user
         $token = $user->createToken('auth_token')->plainTextToken;
-
-        // Return user data and token
-        $userData = $user->only($user->responseFields());
-        $userData['token'] = $token;
-
-        return ApiTrait::data(['user' => $userData], "Email address has been verified successfully", 200);
+        $user->token = $token;
+        return ApiTrait::data(compact('user'), 'Email address has been verified successfully');
     }
 }

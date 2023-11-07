@@ -34,9 +34,8 @@ class SignupController extends Controller
             return ApiTrait::errorMessage([], "Something went wrong", 500);
         }
 
-        $userData = $user->only($user->responseFields());
+        return ApiTrait::data(compact('user'), 'Registration Successful, Please check your email for verification');
 
-        return $this->data(['user' => $userData], 'Registration Successful, now verify your email', 200);
     }
 }
 

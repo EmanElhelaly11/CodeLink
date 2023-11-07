@@ -10,11 +10,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Requests\PostRequest;
 use App\Traits\ApiTrait;
-use App\Traits\Media;
+use App\Traits\MediaTrait;
 
 class PostController extends Controller
 {
-    use ApiTrait, Media; 
+    use ApiTrait, MediaTrait; 
 
     public function getPosts()
     {
@@ -71,8 +71,8 @@ class PostController extends Controller
        // Handle image upload, if provided
        if ($request->hasFile('file_path')) {
            $image = $request->file('file_path');
-           $imagePath = $this->upload($image, 'posts');
-           $post->image_path = "images/posts/$imagePath"; 
+           $imagePath = 'storage/'. MediaTrait::upload($image, 'images/posts');
+           $post->image_path = $imagePath; 
        }
    
        $post->save();
@@ -112,16 +112,15 @@ class PostController extends Controller
        }
 
        // Handle image upload or removal, if provided
+
        if ($request->hasFile('file_path')) {
-           $image = $request->file('file_path');
-           $imagePath = $this->upload($image, 'posts');
-           $post->image_path = "images/posts/$imagePath";
-       } elseif ($request->filled('remove_image')) {
-           // Check if the 'remove_image' input is provided and set to true
-           // If 'remove_image' is true, delete the existing image and set image_path to null
-           $this->delete($post->image_path);
-           $post->image_path = null;
-       }
+        if ($post->image_path) {
+            MediaTrait::delete($post->image_path);
+        }
+        $image = $request->file('file_path');
+        $imagePath = 'storage/'. MediaTrait::upload($image, 'images/posts');
+        $post->image_path = $imagePath; 
+    }
 
        $post->save();
 
@@ -154,7 +153,7 @@ class PostController extends Controller
 
         // Delete the post and associated image, if it exists
         if ($post->image_path) {
-            $this->delete($post->image_path);
+            MediaTrait::delete($post->image_path);
         }
         
         $post->delete();
